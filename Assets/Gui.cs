@@ -10,11 +10,11 @@ public class Gui : MonoBehaviour
     public GameObject server_display_player;
     public GameObject proxy_player;
 
-    public Toggle corrections_toggle;
-    public Toggle correction_smoothing_toggle;
-    public Toggle redundant_inputs_toggle;
-    public Toggle server_player_toggle;
-    public Toggle proxy_player_toggle;
+    public Toggle corrections_toggle;//开启 修正
+    public Toggle correction_smoothing_toggle;//平滑 修正
+    public Toggle redundant_inputs_toggle;//发送 冗余
+    public Toggle server_player_toggle;// 显示服务器玩家
+    public Toggle proxy_player_toggle;// 显示 代理玩家
     public Slider packet_loss_slider;
     public Text packet_loss_label;
     public Slider latency_slider;
@@ -70,20 +70,20 @@ public class Gui : MonoBehaviour
 
     public void OnPacketLossSliderChanged(float value)
     {
-        this.packet_loss_label.text = string.Format("Packet Loss - {0:F1}%", value*100.0f);
+        this.packet_loss_label.text = string.Format("丢包率 - {0:F1}%", value*100.0f);
         this.logic.packet_loss_chance = value;
     }
 
     public void OnLatencySliderChanged(float value)
     {
-        this.latency_label.text = string.Format("Latency - {0}ms", (int)(value * 1000.0f));
+        this.latency_label.text = string.Format("延迟 - {0}ms", (int)(value * 1000.0f));
         this.logic.latency = value;
     }
 
     public void OnSnapshotRateSliderChanged(float value)
     {
         uint rate = (uint)Mathf.Pow(2, value);
-        this.snapshot_rate_label.text = string.Format("Snapshot Rate - {0}hz", 64/rate);
+        this.snapshot_rate_label.text = string.Format("帧率 - {0}hz", 64/rate);
         this.logic.server_snapshot_rate = rate;
     }
 }

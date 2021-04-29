@@ -38,8 +38,8 @@ public class Logic : MonoBehaviour
 
     // common stuff
     public Transform local_player_camera_transform;
-    public float player_movement_impulse;
-    public float player_jump_y_threshold;
+    public float player_movement_impulse;// 玩家刚体移动脉冲力
+    public float player_jump_y_threshold;// 玩家跳跃高度限制
     public GameObject client_player;
     public GameObject smoothed_client_player;
     public GameObject server_player;
@@ -51,7 +51,7 @@ public class Logic : MonoBehaviour
     // client specific
     public bool client_enable_corrections = true;
     public bool client_correction_smoothing = true;
-    public bool client_send_redundant_inputs = true;
+    public bool client_send_redundant_inputs = true;//是否使用 最新的状态帧 做为输入信息的开始帧
     private float client_timer;
     private uint client_tick_number;
     private uint client_last_received_state_tick;
@@ -98,16 +98,28 @@ public class Logic : MonoBehaviour
 
     private void Update()
     {
-        // client update
+        // 客户端更新
+        ClientUpdate(Time.fixedDeltaTime);
+
+        // server update   
+        ServerUpdate(Time.fixedDeltaTime);
+    }
+
+    /// <summary>
+    /// 客户端更新
+    /// </summary>
+    /// <param name="fixedDeltaTime">时间 间隔</param>
+    private void ClientUpdate(float fixedDeltaTime)
+    {
         Rigidbody client_rigidbody = this.client_player.GetComponent<Rigidbody>();
-        float dt = Time.fixedDeltaTime;
+
         float client_timer = this.client_timer;
         uint client_tick_number = this.client_tick_number;
 
         client_timer += Time.deltaTime;
-        while (client_timer >= dt)
+        while (client_timer >= fixedDeltaTime)
         {
-            client_timer -= dt;
+            client_timer -= fixedDeltaTime;
 
             uint buffer_slot = client_tick_number % c_client_buffer_size;
 
@@ -121,11 +133,7 @@ public class Logic : MonoBehaviour
             this.client_input_buffer[buffer_slot] = inputs;
 
             // store state for this tick, then use current state + input to step simulation
-            this.ClientStoreCurrentStateAndStep(
-                ref this.client_state_buffer[buffer_slot], 
-                client_rigidbody, 
-                inputs, 
-                dt);
+            this.ClientStoreCurrentStateAndStep(ref this.client_state_buffer[buffer_slot], client_rigidbody, inputs, fixedDeltaTime);
 
             // send input packet to server
             if (Random.value > this.packet_loss_chance)
@@ -144,14 +152,12 @@ public class Logic : MonoBehaviour
 
             ++client_tick_number;
         }
-        
+
         if (this.ClientHasStateMessage())
         {
             StateMessage state_msg = this.client_state_msgs.Dequeue();
-            while (this.ClientHasStateMessage()) // make sure if there are any newer state messages available, we use those instead
-            {
-                state_msg = this.client_state_msgs.Dequeue();
-            }
+            // 确保当前是最新的 可用状态消息
+            while (this.ClientHasStateMessage()) state_msg = this.client_state_msgs.Dequeue();
 
             this.client_last_received_state_tick = state_msg.tick_number;
 
@@ -164,10 +170,9 @@ public class Logic : MonoBehaviour
                 Vector3 position_error = state_msg.position - this.client_state_buffer[buffer_slot].position;
                 float rotation_error = 1.0f - Quaternion.Dot(state_msg.rotation, this.client_state_buffer[buffer_slot].rotation);
 
-                if (position_error.sqrMagnitude > 0.0000001f ||
-                    rotation_error > 0.00001f)
+                if (position_error.sqrMagnitude > 0.0000001f || rotation_error > 0.00001f)
                 {
-                    Debug.Log("Correcting for error at tick " + state_msg.tick_number + " (rewinding " + (client_tick_number - state_msg.tick_number) + " ticks)");
+                    Debug.Log("当前错误帧 " + state_msg.tick_number + " (倒回 " + (client_tick_number - state_msg.tick_number) + " 帧)");
                     // capture the current predicted pos for smoothing
                     Vector3 prev_pos = client_rigidbody.position + this.client_pos_error;
                     Quaternion prev_rot = client_rigidbody.rotation * this.client_rot_error;
@@ -182,11 +187,7 @@ public class Logic : MonoBehaviour
                     while (rewind_tick_number < client_tick_number)
                     {
                         buffer_slot = rewind_tick_number % c_client_buffer_size;
-                        this.ClientStoreCurrentStateAndStep(
-                            ref this.client_state_buffer[buffer_slot],
-                            client_rigidbody,
-                            this.client_input_buffer[buffer_slot],
-                            dt);
+                        this.ClientStoreCurrentStateAndStep(ref this.client_state_buffer[buffer_slot], client_rigidbody, this.client_input_buffer[buffer_slot], fixedDeltaTime);
 
                         ++rewind_tick_number;
                     }
@@ -219,16 +220,21 @@ public class Logic : MonoBehaviour
             this.client_pos_error = Vector3.zero;
             this.client_rot_error = Quaternion.identity;
         }
-        
+
         this.smoothed_client_player.transform.position = client_rigidbody.position + this.client_pos_error;
         this.smoothed_client_player.transform.rotation = client_rigidbody.rotation * this.client_rot_error;
+    }
 
-        // server update   
-
+    /// <summary>
+    /// 服务器更新
+    /// </summary>
+    /// <param name="fixedDeltaTime">时间 间隔</param>
+    private void ServerUpdate(float fixedDeltaTime)
+    {
         uint server_tick_number = this.server_tick_number;
         uint server_tick_accumulator = this.server_tick_accumulator;
         Rigidbody server_rigidbody = this.server_player.GetComponent<Rigidbody>();
-        
+
         while (this.server_input_msgs.Count > 0 && Time.time >= this.server_input_msgs.Peek().delivery_time)
         {
             InputMessage input_msg = this.server_input_msgs.Dequeue();
@@ -248,7 +254,7 @@ public class Logic : MonoBehaviour
                 for (int i = (int)start_i; i < input_msg.inputs.Count; ++i)
                 {
                     this.PrePhysicsStep(server_rigidbody, input_msg.inputs[i]);
-                    server_physics_scene.Simulate(dt);
+                    server_physics_scene.Simulate(fixedDeltaTime);
 
                     ++server_tick_number;
                     ++server_tick_accumulator;
@@ -269,18 +275,25 @@ public class Logic : MonoBehaviour
                         }
                     }
                 }
-                
+
                 this.server_display_player.transform.position = server_rigidbody.position;
                 this.server_display_player.transform.rotation = server_rigidbody.rotation;
             }
         }
-        
+
         this.server_tick_number = server_tick_number;
         this.server_tick_accumulator = server_tick_accumulator;
     }
 
+    /// <summary>
+    /// 物理刚体 提前 输入一帧操作
+    /// </summary>
+    /// <param name="rigidbody">刚体</param>
+    /// <param name="inputs">输入</param>
     private void PrePhysicsStep(Rigidbody rigidbody, Inputs inputs)
     {
+        // ForceMode.Impulse
+        // 利用刚体的质量，向刚体添加瞬时力脉冲。
         if (this.local_player_camera_transform != null)
         {
             if (inputs.up)
@@ -306,17 +319,28 @@ public class Logic : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 查找 可用 状态消息
+    /// </summary>
     private bool ClientHasStateMessage()
     {
         return this.client_state_msgs.Count > 0 && Time.time >= this.client_state_msgs.Peek().delivery_time;
     }
 
+    /// <summary>
+    /// 客户端 储存当前状态 并模拟下一帧
+    /// </summary>
+    /// <param name="current_state">当前状态</param>
+    /// <param name="rigidbody">刚体</param>
+    /// <param name="inputs">输入</param>
+    /// <param name="dt">时间 间隔</param>
     private void ClientStoreCurrentStateAndStep(ref ClientState current_state, Rigidbody rigidbody, Inputs inputs, float dt)
     {
         current_state.position = rigidbody.position;
         current_state.rotation = rigidbody.rotation;
 
         this.PrePhysicsStep(rigidbody, inputs);
+
         client_physics_scene.Simulate(dt);
     }     
 }
