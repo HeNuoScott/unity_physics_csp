@@ -41,12 +41,12 @@ public class Gui : MonoBehaviour
             this.gui.SetActive(!this.gui.activeSelf);
         }
     }
-
+    // 显示服务器玩家
     public void OnToggleServerPlayer(bool enabled)
     {
         this.server_display_player.SetActive(enabled);
     }
-
+    // 显示代理玩家
     public void OnToggleProxyPlayer(bool enabled)
     {
         this.proxy_player.SetActive(enabled);
@@ -70,7 +70,7 @@ public class Gui : MonoBehaviour
 
     public void OnPacketLossSliderChanged(float value)
     {
-        this.packet_loss_label.text = string.Format("丢包率 - {0:F1}%", value*100.0f);
+        this.packet_loss_label.text = string.Format("丢包率 - {0:F1}%", value * 100.0f);
         this.logic.packet_loss_chance = value;
     }
 
@@ -83,7 +83,7 @@ public class Gui : MonoBehaviour
     public void OnSnapshotRateSliderChanged(float value)
     {
         uint rate = (uint)Mathf.Pow(2, value);
-        this.snapshot_rate_label.text = string.Format("帧率 - {0}hz", 64/rate);
+        this.snapshot_rate_label.text = string.Format("帧率 - {0}hz", 64 / rate);
         this.logic.server_snapshot_rate = rate;
     }
 }

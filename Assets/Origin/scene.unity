@@ -1840,7 +1840,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Latency - 50ms
+  m_Text: "\u5EF6\u8FDF - 50ms"
 --- !u!222 &728754739
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3168,7 +3168,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Snapshot Rate - 64hz
+  m_Text: "\u5E27\u7387 - 64hz"
 --- !u!222 &1523137103
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3488,7 +3488,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Packet Loss - 5.0%
+  m_Text: "\u4E22\u5305\u7387 - 5.0%"
 --- !u!222 &1847983683
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3563,10 +3563,10 @@ MonoBehaviour:
     m_Alignment: 0
     m_AlignByGeometry: 0
     m_RichText: 1
-    m_HorizontalOverflow: 0
+    m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u663E\u793A \u4EE3\u7406\u73A9\u5BB6"
+  m_Text: "\u663E\u793A \u4EE3\u7406\u73A9\u5BB6(\u84DD\u8272--\u5B9E\u9645\u6536\u5230\u6D88\u606F\u65F6\u7684\u72B6\u6001)"
 --- !u!222 &1907558498
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4116,10 +4116,10 @@ MonoBehaviour:
     m_Alignment: 0
     m_AlignByGeometry: 0
     m_RichText: 1
-    m_HorizontalOverflow: 0
+    m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u663E\u793A \u670D\u52A1\u5668\u73A9\u5BB6"
+  m_Text: "\u663E\u793A \u670D\u52A1\u5668\u73A9\u5BB6(\u9EC4\u8272)"
 --- !u!222 &2139448518
 CanvasRenderer:
   m_ObjectHideFlags: 0
