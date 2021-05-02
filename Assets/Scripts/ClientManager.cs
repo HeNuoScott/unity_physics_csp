@@ -15,6 +15,8 @@ public class ClientManager : MonoBehaviour
     public static ClientManager Instance = null;
     private readonly Message PING = new Message() { Type = MessageType.Ping };
 
+    private uint networkId;
+    private Dictionary<int, GameObject> allPlayer_Object;
     private PhysicsScene client_physics_scene;
     private Scene client_scene;
 
@@ -22,6 +24,7 @@ public class ClientManager : MonoBehaviour
     {
         Instance = this;
         Application.runInBackground = true;
+        networkId = 0;
         IPAddress iPAddress = IPAddress.Parse(netConfiguration.HostAddress);
         ServerIPEndPoint = new IPEndPoint(iPAddress, netConfiguration.listenerPort);
         ClientListener = new UdpClient();
@@ -29,9 +32,13 @@ public class ClientManager : MonoBehaviour
         Message message = new Message()
         {
             Type = MessageType.Client_Request_Connect,
-            Content = new object()
+            Content = new Client_Request_Connect()
+            {
+                networkId = this.networkId
+            }
         };
         byte[] Request = GameUtility.MessageSerialize(message);
+
         // 发送连接请求
         ClientListener.Send(Request, Request.Length, ServerIPEndPoint);
         Debug.Log("客户端启动 并发送 连接请求");
@@ -56,25 +63,11 @@ public class ClientManager : MonoBehaviour
     private void AnalyzeMessage(IPEndPoint remoteEndpoint, Message message)
     {
         Debug.Log($"Received {message.Type} from address: {remoteEndpoint.Address}");
-
-        //byte[] response = Encoding.UTF8.GetBytes(serverConfiguration.lanDiscoveryResponse + " " + GameSession.serverSession.serverPort + " " + goInGameServerSystem.connectedPlayers + " " + GameSession.serverSession.numberOfPlayers + " " + GameSession.serverSession.laps + " " + GameSession.serverSession.hostName);
-
-        //if (goInGameServerSystem.connectedPlayers < GameSession.serverSession.numberOfPlayers && receivedMessage.Equals(serverConfiguration.lanDiscoveryRequest))
-        //{
-        //    Debug.Log("response to address: " + remoteEndpoint.Address);
-        //    listener.Send(response, response.Length, remoteEndpoint);
-        //}
     }
 
     private void SendPing()
     {
         byte[] response = GameUtility.MessageSerialize(PING);
         ClientListener.Send(response, response.Length, ServerIPEndPoint);
-        //while (Application.isPlaying)
-        //{
-        //    yield return new WaitForSeconds(1);
-
-        //}
-
     }
 }

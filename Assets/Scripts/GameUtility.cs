@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System.Collections.Generic;
+using System.Net.Sockets;
 using UnityEngine;
 using System.Text;
 using System.Net;
@@ -45,14 +46,37 @@ public class GameUtility
     }
 }
 
-public enum MessageType
+
+public struct Inputs
 {
-    Ping,
-    Pong,
-    Client_Request_Connect,
-    Client_Request_DisConnect,
-    Client_Request_Operation,
-    Broad_Connect,
-    Broad_DisConnect,
-    Broad_Operation,
+    public bool up;
+    public bool down;
+    public bool left;
+    public bool right;
+    public bool jump;
+
+    public uint impulse;
+}
+
+public struct InputMessage
+{
+    public float delivery_time;
+    public uint start_tick_number;
+    public List<Inputs> inputs;
+}
+
+public struct ClientState
+{
+    public Vector3 position;
+    public Quaternion rotation;
+}
+
+public struct StateMessage
+{
+    public float delivery_time;
+    public uint tick_number;
+    public Vector3 position;
+    public Quaternion rotation;
+    public Vector3 velocity;
+    public Vector3 angular_velocity;
 }

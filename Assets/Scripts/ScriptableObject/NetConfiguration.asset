@@ -14,5 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HostAddress: 127.0.0.1
   listenerPort: 5055
+  serverRate: 64
+  serverFixedDeltaTime: 0.015625
   lanDiscoveryRequest: PING
   lanDiscoveryResponse: PONG
