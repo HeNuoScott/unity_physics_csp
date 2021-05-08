@@ -16,8 +16,8 @@ Use Unity 2019.4.12f1 or up
 ## 运行Demo
 
 Build Setting 添加
-LocalEditorSceneTest
-server_physics_scene
-client_physics_scene
+* LocalEditorSceneTest
+* server_physics_scene
+* client_physics_scene
 
 运行 LocalEditorSceneTest 场景
