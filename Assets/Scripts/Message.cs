@@ -55,7 +55,7 @@ namespace Data
     public struct Client_Request_Operation
     {
         public uint networkId;
-        public Inputs inputs;
+        public InputMessage inputMessage;
     }
 
     public struct Server_Responses_Connect
@@ -72,7 +72,6 @@ namespace Data
     public struct Broad_Operation
     {
         public uint tick_number;
-        public Dictionary<uint, InputMessage> inputMessage;
         public Dictionary<uint, StateMessage> StateMessage;
     }
 }

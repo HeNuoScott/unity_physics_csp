@@ -439,7 +439,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &127438598
 GameObject:
   m_ObjectHideFlags: 0
@@ -2529,7 +2529,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &990795644
 GameObject:
   m_ObjectHideFlags: 0
@@ -3833,7 +3833,6 @@ GameObject:
   - component: {fileID: 2084854771}
   - component: {fileID: 2084854770}
   - component: {fileID: 2084854768}
-  - component: {fileID: 2084854769}
   m_Layer: 0
   m_Name: server_player
   m_TagString: Untagged
@@ -3857,18 +3856,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 1
---- !u!114 &2084854769
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2084854767}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0da01464b63a80d45a1f51274a523965, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!65 &2084854770
 BoxCollider:
   m_ObjectHideFlags: 0

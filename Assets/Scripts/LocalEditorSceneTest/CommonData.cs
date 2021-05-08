@@ -26,6 +26,10 @@ public class CommonData : MonoBehaviour
     {
         if (Random.value < packet_loss_chance) return;
         client_input_msgs.Enqueue(inputMessage);
+        //if (inputMessage.inputs.Count>1)
+        //{
+        //    Debug.Log($"输入了:{inputMessage.inputs.Count}次");
+        //}
     }
 
     public void SendInputPacketToClient(InputMessage inputMessage)

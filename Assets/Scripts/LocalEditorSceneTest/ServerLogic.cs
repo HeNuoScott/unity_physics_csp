@@ -45,7 +45,7 @@ public class ServerLogic : MonoBehaviour
             {
                 // 数组中可能有一些我们已经有的输入，所以找出从哪里开始
                 uint start_i = server_tick_number > input_msg.start_tick_number ? (server_tick_number - input_msg.start_tick_number) : 0;
-
+                //Debug.Log(start_i);
                 // 运行所有相关输入，并推动玩家前进
                 for (int i = (int)start_i; i < input_msg.inputs.Count; ++i)
                 {

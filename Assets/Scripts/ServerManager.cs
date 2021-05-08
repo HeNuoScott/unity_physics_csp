@@ -16,16 +16,16 @@ public class ServerManager : MonoBehaviour
     private uint server_snapshot_rate;//服务器帧率
     private uint server_tick_number;
     private uint server_tick_accumulator;
-    public GameObject server_player;
+    public GameObject server_player_perfab;
     private PhysicsScene server_physics_scene;
     private Scene server_scene;
     private float packet_loss_chance; // 丢包率
     private float latency; // 延迟
-    private Queue<InputMessage> server_input_msgs;//等待处理的用户输入
+    private Queue<Client_Request_Operation> server_input_msgs;//等待处理的用户输入
     private Queue<StateMessage> server_state_msgs;//等待发送的用户状态
     private Queue<Message> server_broad_msgs;//等待发送消息
-    private Dictionary<int, IPEndPoint> allPlayer;
-    private Dictionary<IPEndPoint, GameObject> allPlayer_Object;
+    private Dictionary<uint, IPEndPoint> allPlayer;
+    private Dictionary<uint, GameObject> allPlayer_Object;
     private uint networkId;
 
 
@@ -38,15 +38,15 @@ public class ServerManager : MonoBehaviour
         this.server_snapshot_rate = netConfiguration.serverRate;
         this.server_tick_number = 0;
         this.server_tick_accumulator = 0;
-        this.server_input_msgs = new Queue<InputMessage>();
+        this.server_input_msgs = new Queue<Client_Request_Operation>();
         this.server_state_msgs = new Queue<StateMessage>();
         this.server_broad_msgs = new Queue<Message>();
-        this.allPlayer = new Dictionary<int, IPEndPoint>();
-        this.allPlayer_Object = new Dictionary<IPEndPoint, GameObject>();
+        this.allPlayer = new Dictionary<uint, IPEndPoint>();
+        this.allPlayer_Object = new Dictionary<uint, GameObject>();
 
         ServerListener = new UdpClient(netConfiguration.listenerPort);
         Debug.Log("服务端启动 开启监听");
-        server_scene = SceneManager.LoadScene("physics_scene", new LoadSceneParameters() { loadSceneMode = LoadSceneMode.Additive, localPhysicsMode = LocalPhysicsMode.Physics3D });
+        server_scene = SceneManager.LoadScene("server_physics_scene", new LoadSceneParameters() { loadSceneMode = LoadSceneMode.Additive, localPhysicsMode = LocalPhysicsMode.Physics3D });
         server_physics_scene = server_scene.GetPhysicsScene();
     }
 
@@ -59,12 +59,14 @@ public class ServerManager : MonoBehaviour
             Message message = GameUtility.MessageDeserialization(byteMessage);
             AnalyzeMessage(remoteEndpoint, message);
         }
-        ServerUpdate(Time.fixedDeltaTime);
 
-        BroadMessage();
+        ServerUpdate(Time.fixedDeltaTime);
     }
 
-
+    private void LateUpdate()
+    {
+        BroadMessage();
+    }
 
     public void OnDestroy()
     {
@@ -82,8 +84,9 @@ public class ServerManager : MonoBehaviour
                 break;
             case MessageType.Client_Request_Connect:
                 Client_Request_Connect request_Connect = (Client_Request_Connect)message.Content;
+                bool isNewPlayer = request_Connect.networkId == 0;
                 // 分配用户id
-                uint NetId = request_Connect.networkId == 0 ? networkId++ : request_Connect.networkId;
+                uint NetId = isNewPlayer ? networkId++ : request_Connect.networkId;
                 // 服务器立即回应
                 Server_Responses_Connect Responses_Connect = new Server_Responses_Connect()
                 {
@@ -97,26 +100,36 @@ public class ServerManager : MonoBehaviour
                     isReConnect = request_Connect.networkId != 0
                 };
                 server_broad_msgs.Enqueue(new Message() { Type = MessageType.Broad_Connect, Content = broad_Connect });
+
+                if (isNewPlayer)
+                {
+                    allPlayer[NetId] = remoteEndpoint;
+                    GameObject player = Instantiate(server_player_perfab, Vector3.zero, Quaternion.identity);
+                    allPlayer_Object[NetId] = player;
+                }
+                else
+                {
+                    allPlayer[NetId] = remoteEndpoint;
+                }
                 break;
             case MessageType.Client_Request_Operation:
+                Client_Request_Operation operation = (Client_Request_Operation)message.Content;
+                server_input_msgs.Enqueue(operation);
                 break;
             default:
                 break;
         }
-
     }
-
-
 
     private void ServerUpdate(float fixedDeltaTime)
     {
-        uint server_tick_number = this.server_tick_number;
-        uint server_tick_accumulator = this.server_tick_accumulator;
-        Rigidbody server_rigidbody = this.server_player.GetComponent<Rigidbody>();
-
-        while (this.server_input_msgs.Count > 0 && Time.time >= this.server_input_msgs.Peek().delivery_time)
+        while (this.server_input_msgs.Count > 0)
         {
-            InputMessage input_msg = this.server_input_msgs.Dequeue();
+            Client_Request_Operation operation = this.server_input_msgs.Dequeue();
+            if (Time.time < operation.inputMessage.delivery_time) continue;
+
+            Rigidbody server_rigidbody = allPlayer_Object[operation.networkId].GetComponent<Rigidbody>();
+            InputMessage input_msg = operation.inputMessage;
 
             // 消息包含一个输入数组，计算最后一个帧
             uint max_tick = input_msg.start_tick_number + (uint)input_msg.inputs.Count - 1;
@@ -154,9 +167,6 @@ public class ServerManager : MonoBehaviour
                 }
             }
         }
-
-        this.server_tick_number = server_tick_number;
-        this.server_tick_accumulator = server_tick_accumulator;
     }
 
     /// <summary>

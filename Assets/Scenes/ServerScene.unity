@@ -165,3 +165,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   netConfiguration: {fileID: 11400000, guid: 082981e07d7390e4e8555a9db1c2dac4, type: 2}
+  server_player_perfab: {fileID: 6152073229402427984, guid: 61152ed3c5cf778458ff3f04f1afaacb,
+    type: 3}

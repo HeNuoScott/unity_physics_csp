@@ -42,7 +42,6 @@ public class ClientManager : MonoBehaviour
         // 发送连接请求
         ClientListener.Send(Request, Request.Length, ServerIPEndPoint);
         Debug.Log("客户端启动 并发送 连接请求");
-        InvokeRepeating("SendPing", 1, 1);
     }
 
     private void Update()
@@ -63,6 +62,18 @@ public class ClientManager : MonoBehaviour
     private void AnalyzeMessage(IPEndPoint remoteEndpoint, Message message)
     {
         Debug.Log($"Received {message.Type} from address: {remoteEndpoint.Address}");
+        switch (message.Type)
+        {
+            case MessageType.Server_Responses_Connect:
+                InvokeRepeating(nameof(SendPing), 1, 1);
+                break;
+            case MessageType.Broad_Connect:
+                break;
+            case MessageType.Broad_Operation:
+                break;
+            default:
+                break;
+        }
     }
 
     private void SendPing()

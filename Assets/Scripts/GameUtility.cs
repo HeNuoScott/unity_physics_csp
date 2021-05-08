@@ -73,6 +73,9 @@ public struct ClientState
 
 public struct StateMessage
 {
+    /// <summary>
+    /// 发送时间
+    /// </summary>
     public float delivery_time;
     public uint tick_number;
     public Vector3 position;
